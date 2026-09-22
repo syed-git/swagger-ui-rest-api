@@ -1,0 +1,29 @@
+{
+  "name": "swagger-ui-rest-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PolicyHub Insurance REST API - 200+ JSON endpoints (GET/POST/PUT/PATCH/DELETE) with Swagger UI, deployable to Render",
+  "type": "module",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20 <25"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test test/*.test.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "openapi": "node scripts/print-openapi.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^16.0.0"
+  }
+}
