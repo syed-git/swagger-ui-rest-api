@@ -175,6 +175,15 @@ export function registerResourceRoutes(registry, store) {
 
 export const json = (schema, example) => ({ 'application/json': example ? { schema, example } : { schema } });
 
+export const ERROR_EXAMPLES = {
+  400: { code: 'BAD_REQUEST', message: "Path parameter 'id' must be a positive integer" },
+  401: { code: 'UNAUTHORIZED', message: 'Missing Bearer token' },
+  404: { code: 'NOT_FOUND', message: 'Account 999 not found' },
+  409: { code: 'CONFLICT', message: "Quote 1 is 'Draft'; 'bind' requires status in [Rated]" },
+  422: { code: 'VALIDATION_ERROR', message: 'Request body failed validation', details: [{ field: 'type', message: 'must be one of: Personal, Commercial', received: 'Nope' }] },
+  500: { code: 'INTERNAL_ERROR', message: 'Unexpected server error' },
+};
+
 export const errorResponse = (description) => ({
   description,
   content: json({ $ref: '#/components/schemas/Error' }),

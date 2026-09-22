@@ -677,7 +677,15 @@ export function registerActionRoutes(registry, store) {
     path: '/reports/premium-by-product',
     tag: 'Reports',
     summary: 'Total written premium grouped by product',
-    responses: { 200: { description: 'Report', content: json({ type: 'object' }) } },
+    responses: {
+      200: {
+        description: 'Report',
+        content: json(
+          { type: 'object', properties: { generatedAt: { type: 'string', format: 'date-time' }, rows: { type: 'array', items: { type: 'object', properties: { productId: { type: 'integer' }, code: { type: 'string' }, name: { type: 'string' }, policies: { type: 'integer' }, premium: { type: 'number' } } } }, total: { type: 'number' } } },
+          { generatedAt: '2025-01-15T10:00:00.000Z', rows: [{ productId: 1, code: 'AUTO', name: 'Personal Auto', policies: 12, premium: 15420.5 }], total: 15420.5 },
+        ),
+      },
+    },
     handler: (req, res) => {
       const rows = col('products').all().map((p) => {
         const policies = col('policies').filter({ productId: p.id });
@@ -691,7 +699,15 @@ export function registerActionRoutes(registry, store) {
     path: '/reports/claims-by-status',
     tag: 'Reports',
     summary: 'Claim counts and amounts grouped by status',
-    responses: { 200: { description: 'Report', content: json({ type: 'object' }) } },
+    responses: {
+      200: {
+        description: 'Report',
+        content: json(
+          { type: 'object', properties: { generatedAt: { type: 'string', format: 'date-time' }, rows: { type: 'array', items: { type: 'object', properties: { status: { type: 'string' }, count: { type: 'integer' }, reserveAmount: { type: 'number' }, paidAmount: { type: 'number' } } } } } },
+          { generatedAt: '2025-01-15T10:00:00.000Z', rows: [{ status: 'Open', count: 4, reserveAmount: 18200, paidAmount: 0 }, { status: 'Closed', count: 9, reserveAmount: 0, paidAmount: 42310.25 }] },
+        ),
+      },
+    },
     handler: (req, res) => {
       const rows = {};
       for (const c of col('claims').all()) {
@@ -709,7 +725,7 @@ export function registerActionRoutes(registry, store) {
     tag: 'Reports',
     summary: 'Policies and premium per agent',
     parameters: [{ name: 'page', in: 'query', schema: { type: 'integer' } }, { name: 'pageSize', in: 'query', schema: { type: 'integer' } }],
-    responses: { 200: { description: 'Report', content: pageSchema({ type: 'object' }) } },
+    responses: { 200: { description: 'Report', content: pageSchema({ type: 'object', properties: { agentId: { type: 'integer', example: 1 }, agent: { type: 'string', example: 'Jane Doe' }, agencyId: { type: 'integer', example: 1 }, accounts: { type: 'integer', example: 5 }, policies: { type: 'integer', example: 7 }, premium: { type: 'number', example: 9875.4 } } }) } },
     handler: (req, res) => {
       const rows = col('agents').all().map((a) => {
         const policies = col('policies').filter({ agentId: a.id });
@@ -723,7 +739,15 @@ export function registerActionRoutes(registry, store) {
     path: '/reports/billing-aging',
     tag: 'Reports',
     summary: 'Outstanding invoice balance bucketed by age',
-    responses: { 200: { description: 'Report', content: json({ type: 'object' }) } },
+    responses: {
+      200: {
+        description: 'Report',
+        content: json(
+          { type: 'object', properties: { generatedAt: { type: 'string', format: 'date-time' }, buckets: { type: 'object', additionalProperties: { type: 'number' } }, total: { type: 'number' } } },
+          { generatedAt: '2025-01-15T10:00:00.000Z', buckets: { current: 1200, '1-30': 640.5, '31-60': 0, '61-90': 310, '90+': 0 }, total: 2150.5 },
+        ),
+      },
+    },
     handler: (req, res) => {
       const buckets = { current: 0, '1-30': 0, '31-60': 0, '61-90': 0, '90+': 0 };
       const now = Date.now();

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resources } from './resources.js';
 import { toOpenApiPath } from './registry.js';
+import { json, errorResponse, ERROR_EXAMPLES } from './routes/resources.js';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
@@ -71,9 +72,15 @@ export function buildOpenApi(registry, basePath) {
     ];
     const responses = { ...(op.responses || {}) };
     if (!responses[400] && parameters.some((p) => p.in === 'path' && p.name === 'id')) {
-      responses[400] = { description: 'Invalid id', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } };
+      responses[400] = errorResponse('Invalid id');
     }
-    responses[500] = responses[500] || { description: 'Unexpected error', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } };
+    responses[500] = responses[500] || errorResponse('Unexpected error');
+    for (const [status, response] of Object.entries(responses)) {
+      const media = response.content?.['application/json'];
+      if (media && media.schema?.$ref === '#/components/schemas/Error' && !media.example && ERROR_EXAMPLES[status]) {
+        responses[status] = { ...response, content: json(media.schema, { error: ERROR_EXAMPLES[status] }) };
+      }
+    }
 
     paths[path][op.method] = {
       tags: [op.tag],
@@ -124,9 +131,13 @@ export function buildOpenApi(registry, basePath) {
             error: {
               type: 'object',
               properties: {
-                code: { type: 'string', example: 'VALIDATION_ERROR' },
-                message: { type: 'string', example: 'Request body failed validation' },
-                details: { type: 'array', items: { type: 'object', properties: { field: { type: 'string' }, message: { type: 'string' }, received: {} } } },
+                code: { type: 'string', example: 'NOT_FOUND', enum: ['BAD_REQUEST', 'INVALID_JSON', 'UNAUTHORIZED', 'NOT_FOUND', 'ROUTE_NOT_FOUND', 'CONFLICT', 'VALIDATION_ERROR', 'INTERNAL_ERROR'] },
+                message: { type: 'string', example: 'Account 999 not found' },
+                details: {
+                  type: 'array',
+                  description: 'Present only for VALIDATION_ERROR',
+                  items: { type: 'object', properties: { field: { type: 'string', example: 'type' }, message: { type: 'string', example: 'must be one of: Personal, Commercial' }, received: { example: 'Nope' } } },
+                },
               },
             },
           },
